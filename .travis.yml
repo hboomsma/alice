@@ -7,7 +7,6 @@ cache:
 php:
   - '7.0'
   - '7.1'
-  - nightly
 
 env:
   global:
@@ -24,8 +23,12 @@ matrix:
       env: SYMFONY_VERSION='~3.2.0'
     - php: '7.1'
       env: SYMFONY_VERSION='~3.3.0@dev'
+    - php: 'nightly'
+      env:
+        - SYMFONY_VERSION='~3.3.0@dev'
+        - SYMFONY_DEPRECATIONS_HELPER='weak'
   allow_failures:
-    - php: nightly
+    - php: 'nightly'
     - env: SYMFONY_VERSION='~3.3.0@dev'
 
 before_install:
@@ -45,16 +48,12 @@ before_install:
         PHPUNIT_BIN="phpdbg -qrr $PHPUNIT_BIN"
         PHPUNIT_FLAGS="$PHPUNIT_FLAGS --testdox --coverage-text --exclude-group=integration"
     fi
-  - |
-    if [ "TRAVIS_PHP_VERSION" == "nightly" ]; then
-        COMPOSER_FLAGS="$COMPOSER_FLAGS --ignore-platform-reqs"
-    fi
 
 install:
   - composer update --prefer-dist $COMPOSER_FLAGS
   - |
     if [ -n "$SYMFONY_VERSION" ]; then
-        composer bin symfony require --no-update symfony/symfony "symfony/symfony:${SYMFONY_VERSION}"
+        composer bin symfony require $COMPOSER_FLAGS --no-update symfony/symfony "symfony/symfony:${SYMFONY_VERSION}"
     fi
   - composer bin all update $COMPOSER_FLAGS
   - vendor-bin/covers-validator/bin/covers-validator -c $PHPUNIT_CONFIG
